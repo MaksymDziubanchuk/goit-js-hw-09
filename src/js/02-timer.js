@@ -1,5 +1,6 @@
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
+import Notiflix from 'notiflix';
 
 const refs = {
   input: document.querySelector('input[type="text"]'),
@@ -27,6 +28,9 @@ const options = {
   onClose(selectedDates) {
     selectedDate = selectedDates[0].getTime();
     disadleBtn();
+    if (selectedDate <= Date.now()) {
+      Notiflix.Notify.warning('Please choose a date in the future');
+    }
   },
 };
 
@@ -47,7 +51,7 @@ function onStartBtnClick() {
 
     intervalId = setInterval(() => {
       if (timerValue > 0) {
-        putValues(getTimeComponents(timerValue));
+        putValues(convertMs(timerValue));
         timerValue -= 1000;
       } else {
         timerStatus = false;
@@ -57,15 +61,25 @@ function onStartBtnClick() {
   }
 }
 
-function pad(value) {
+function addLeadingZero(value) {
   return String(value).padStart(2, '0');
 }
 
-function getTimeComponents(time) {
-  const days = pad(Math.floor((time % (1000 * 60 * 60 * 24 * 365)) / (1000 * 60 * 60 * 24)));
-  const hours = pad(Math.floor((time % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)));
-  const mins = pad(Math.floor((time % (1000 * 60 * 60)) / (1000 * 60)));
-  const secs = pad(Math.floor((time % (1000 * 60)) / 1000));
+function convertMs(ms) {
+  // Number of milliseconds per unit of time
+  const second = 1000;
+  const minute = second * 60;
+  const hour = minute * 60;
+  const day = hour * 24;
+
+  // Remaining days
+  const days = addLeadingZero(Math.floor(ms / day));
+  // Remaining hours
+  const hours = addLeadingZero(Math.floor((ms % day) / hour));
+  // Remaining minutes
+  const mins = addLeadingZero(Math.floor(((ms % day) % hour) / minute));
+  // Remaining seconds
+  const secs = addLeadingZero(Math.floor((((ms % day) % hour) % minute) / second));
 
   return { days, hours, mins, secs };
 }
